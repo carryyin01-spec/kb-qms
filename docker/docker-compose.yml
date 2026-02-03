@@ -1,0 +1,28 @@
+version: "3.9"
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: qms
+      MYSQL_USER: qms
+      MYSQL_PASSWORD: qms_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - qms-mysql-data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: ["--default-authentication-plugin=mysql_native_password"]
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+volumes:
+  qms-mysql-data:
+

@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: qms-backend
+  profiles:
+    active: local
+  jackson:
+    default-property-inclusion: non_null
+    time-zone: Asia/Bangkok
+    date-format: yyyy-MM-dd HH:mm:ss
+  sql:
+    init:
+      mode: never
+      continue-on-error: true
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+      location: ${user.home}/qms-data/temp
+  datasource:
+    url: jdbc:mysql://localhost:3306/qms?useUnicode=true&characterEncoding=utf8&connectionCollation=utf8mb4_general_ci&allowPublicKeyRetrieval=true&serverTimezone=Asia/Bangkok&createDatabaseIfNotExist=true&sessionVariables=time_zone='%2B07:00'
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+logging:
+  config: classpath:logback-spring.xml
+qms:
+  jwt:
+    secret: "qms-secret-key-must-be-very-long-and-secure-at-least-256-bits-for-hs256"
+    issuer: "qms-system"
+    expire-minutes: 480
+file:
+  upload-dir: E:/qms-data/uploads

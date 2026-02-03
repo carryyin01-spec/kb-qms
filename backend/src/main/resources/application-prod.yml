@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: jdbc:mysql://mysql:3306/qms?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Bangkok&useSSL=false&sessionVariables=time_zone='%2B07:00'
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: qms
+    password: qms_pass
+  sql:
+    init:
+      mode: never
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+

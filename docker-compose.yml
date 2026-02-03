@@ -1,0 +1,60 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: qms-mysql
+    command: ["--default-authentication-plugin=mysql_native_password"]
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=Root@12345
+      - MYSQL_DATABASE=qms
+      - MYSQL_USER=qms
+      - MYSQL_PASSWORD=qms123
+    volumes:
+      - E:/qms-system/mysql_data:/var/lib/mysql
+      - E:/qms-system/deploy/mysql-init:/docker-entrypoint-initdb.d
+    networks:
+      - qms-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pRoot@12345"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    image: qms-system-backend:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - FILE_UPLOAD_DIR=/app/uploads
+      - SPRING_PROFILES_ACTIVE=local
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/qms?useUnicode=true&characterEncoding=utf8&connectionCollation=utf8mb4_general_ci&allowPublicKeyRetrieval=true&serverTimezone=Asia/Bangkok&createDatabaseIfNotExist=true
+      - DB_USER=qms
+      - DB_PASS=qms123
+    volumes:
+      - E:/qms-system/uploads:/app/uploads
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - qms-net
+    restart: unless-stopped
+
+  frontend:
+    image: qms-system-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - qms-net
+
+networks:
+  qms-net:
+    driver: bridge

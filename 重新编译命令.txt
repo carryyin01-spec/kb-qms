@@ -1,0 +1,129 @@
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-17.0.3.1"; $env:Path = "$env:JAVA_HOME\bin;$env:Path"; mvn -q -DskipTests package -f backend/pom.xml 
+powershell -ExecutionPolicy Bypass -File run_backend.ps1 
+
+npm start 
+
+$env:JAVA_HOME='D:\Java\java17'; $env:Path="$env:JAVA_HOME\bin;$env:Path"; java -jar target\qms-backend-1.0.0.jar 
+
+docker save -o qms-system-images.tar qms-system-frontend:latest qms-system-backend:latest mysql:8.0
+
+MySQL localhost:3306 （数据库 qms ，用户 qms ，密码 qms123 ，root 密码 Root@12345 ）
+登录用户名  admin', 'Admin@123'
+
+✅ 阶段一：新机器准备 Docker
+1️⃣ 确认新机器已安装 Docker
+
+在新机器终端执行：
+
+docker -v
+
+
+如果没有：
+
+Windows / Mac：安装 Docker Desktop
+
+Linux：安装 docker + docker-compose-plugin
+
+✅ 阶段二：导入你刚刚打包的镜像
+
+假设你已经把文件拷到新机器，比如：
+
+qms-system-images.tar
+
+2️⃣ 加载镜像
+docker load -i qms-system-images.tar
+
+
+等待完成。
+
+3️⃣ 验证镜像是否存在
+docker images
+
+
+你应该能看到：
+
+qms-system-frontend   latest
+qms-system-backend    latest
+mysql                 8.0
+
+
+到这里 镜像已经成功复制 ✅
+
+✅ 阶段三：一条命令跑完整系统（推荐）
+
+⚠️ 强烈推荐你用 docker-compose，
+比单独 docker run 稳定、好维护。
+
+🧩 第一步：在新机器创建目录
+mkdir qms-system
+cd qms-system
+
+🧩 第二步：创建 docker-compose.yml
+
+新建文件 docker-compose.yml，内容 直接复制：
+
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: qms-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: qms
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_general_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    image: qms-system-backend:latest
+    container_name: qms-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/qms?useSSL=false&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 123456
+
+  frontend:
+    image: qms-system-frontend:latest
+    container_name: qms-frontend
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:
+
+
+📌 关键点
+
+后端数据库地址：mysql:3306
+
+不要用 localhost
+
+MySQL 数据自动持久化
+
+🧩 第三步：启动全部服务
+docker compose up -d
+
+🧪 第四步：验证
+查看状态
+docker compose p
+
+docker打包
+docker save -o qms-system-images.tar qms-system-frontend:latest qms-system-backend:latest mariadb:10.6
+
+新机器加载 
+docker load -i qms-system-images.tar
+
+放大镜、卡尺、菲林片、塞尺、膜厚仪、通止规、塞规、螺纹环规、色卡、客户限度样、CCD、X-RAY、二次元、三次元
