@@ -1,7 +1,10 @@
 package com.qms.config;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
+import com.qms.security.LoginUser;
 import org.apache.ibatis.reflection.MetaObject;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -16,6 +19,18 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
     log.info("MyMetaObjectHandler insertFill: setting createdAt/updatedAt to {}", now);
     strictInsertFill(metaObject, "createdAt", LocalDateTime.class, now);
     strictInsertFill(metaObject, "updatedAt", LocalDateTime.class, now);
+    
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth != null && auth.isAuthenticated()) {
+      String createdBy = auth.getName();
+      if (auth.getPrincipal() instanceof LoginUser) {
+        String name = ((LoginUser) auth.getPrincipal()).getName();
+        if (name != null && !name.isEmpty()) {
+          createdBy = name;
+        }
+      }
+      strictInsertFill(metaObject, "createdBy", String.class, createdBy);
+    }
   }
 
   @Override

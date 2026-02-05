@@ -42,6 +42,9 @@ public class CustomerComplaint {
     private String status;
     
     @TableField(fill = FieldFill.INSERT)
+    private String createdBy;
+    
+    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
     
     @TableField(fill = FieldFill.INSERT_UPDATE)

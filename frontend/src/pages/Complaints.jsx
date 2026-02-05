@@ -132,6 +132,10 @@ export default function Complaints() {
   const [msg, setMsg] = useState("");
   
   const [statusFilter, setStatusFilter] = useState("");
+  const [inspectorFilter, setInspectorFilter] = useState("");
+  const [productionDeptFilter, setProductionDeptFilter] = useState("");
+  const [ownerFilter, setOwnerFilter] = useState("");
+  const [responsibleDeptFilter, setResponsibleDeptFilter] = useState("");
   const [selectedIds, setSelectedIds] = useState([]);
   const [showBatchActions, setShowBatchActions] = useState(false);
   const [qaInspectors, setQaInspectors] = useState([]);
@@ -188,7 +192,11 @@ export default function Complaints() {
       size, 
       customerCode: customerCodeFilter || undefined, 
       status: statusFilter || undefined,
-      productModel: productModelFilter || undefined
+      productModel: productModelFilter || undefined,
+      inspector: inspectorFilter || undefined,
+      productionDept: productionDeptFilter || undefined,
+      owner: ownerFilter || undefined,
+      responsibleDept: responsibleDeptFilter || undefined
     });
     if (res.code === 200) {
       setData(res.data.records || []);
@@ -206,7 +214,7 @@ export default function Complaints() {
   useEffect(() => {
     fetchData();
     fetchQaInspectors();
-  }, [page, size, statusFilter]);
+  }, [page, size, statusFilter, inspectorFilter, productionDeptFilter, responsibleDeptFilter]);
 
   const remove = async (id) => {
     if (!window.confirm("确定删除该客诉记录？")) return;
@@ -374,6 +382,37 @@ export default function Complaints() {
               <option value="closed">closed</option>
             </select>
           </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-500">QA检验员</label>
+            <select className="select w-40" value={inspectorFilter} onChange={(e)=>setInspectorFilter(e.target.value)}>
+              <option value="">所有检验员</option>
+              {qaInspectors.map(u => (
+                <option key={u.id} value={u.name || u.username}>{u.name || u.username}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-500">生产部门</label>
+            <select className="select w-40" value={productionDeptFilter} onChange={(e)=>setProductionDeptFilter(e.target.value)}>
+              <option value="">所有部门</option>
+              {["SMT", "DIP", "ASSY", "样品", "工程", "客户", "来料"].map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-500">责任人</label>
+            <input className="input w-40" value={ownerFilter} onChange={(e)=>setOwnerFilter(e.target.value)} placeholder="输入责任人" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-500">责任部门</label>
+            <select className="select w-40" value={responsibleDeptFilter} onChange={(e)=>setResponsibleDeptFilter(e.target.value)}>
+              <option value="">所有部门</option>
+              {["SMT", "DIP", "ASSY", "样品", "工程", "客户", "来料"].map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+          </div>
           <button className="btn-primary" onClick={()=>{ if(page === 1) fetchData(); else setPage(1); }}>查询</button>
         </div>
       </div>
@@ -386,6 +425,8 @@ export default function Complaints() {
                 <input type="checkbox" checked={selectedIds.length === data.length && data.length > 0} onChange={toggleSelectAll} />
               </th>
               <th className="sticky left-10 bg-gray-50 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">序号</th>
+              <th>创建用户</th>
+              <th>创建时间</th>
               <th>月份</th>
               <th>周期</th>
               <th>客户等级</th>
@@ -422,6 +463,8 @@ export default function Complaints() {
                   <input type="checkbox" checked={selectedIds.includes(i.id)} onChange={() => toggleSelect(i.id)} />
                 </td>
                 <td className="sticky left-10 bg-white z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">{(page - 1) * size + index + 1}</td>
+                <td>{i.createdBy}</td>
+                <td>{i.createdAt ? i.createdAt.replace("T", " ").split(".")[0] : ""}</td>
                 <td>{i.month}</td>
                 <td>{i.cycle}</td>
                 <td>{i.customerGrade}</td>

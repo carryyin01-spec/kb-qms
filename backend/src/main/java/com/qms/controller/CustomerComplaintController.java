@@ -24,8 +24,13 @@ public class CustomerComplaintController {
                                                      @RequestParam(defaultValue = "10") long size,
                                                      @RequestParam(required = false) String customerCode,
                                                      @RequestParam(required = false) String productModel,
-                                                     @RequestParam(required = false) String status) {
-        return ApiResponse.ok(complaintService.page(page, size, customerCode, productModel, status));
+                                                     @RequestParam(required = false) String status,
+                                                     @RequestParam(required = false) String inspector,
+                                                     @RequestParam(required = false) String productionDept,
+                                                     @RequestParam(required = false) String owner,
+                                                     @RequestParam(required = false) String responsibleDept) {
+        return ApiResponse.ok(complaintService.page(page, size, customerCode, productModel, status, 
+                inspector, productionDept, owner, responsibleDept));
     }
 
     @GetMapping("/{id}")

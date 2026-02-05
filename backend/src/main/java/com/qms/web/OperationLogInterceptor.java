@@ -1,6 +1,7 @@
 package com.qms.web;
 
 import com.qms.entity.SystemLog;
+import com.qms.security.LoginUser;
 import com.qms.service.SystemLogService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,7 +27,17 @@ public class OperationLogInterceptor implements HandlerInterceptor {
     }
 
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    String username = auth != null ? auth.getName() : "anonymous";
+    String username = "anonymous";
+    if (auth != null && auth.isAuthenticated()) {
+      username = auth.getName();
+      if (auth.getPrincipal() instanceof LoginUser) {
+        String name = ((LoginUser) auth.getPrincipal()).getName();
+        if (name != null && !name.isEmpty()) {
+          username = name;
+        }
+      }
+    }
+    
     SystemLog log = new SystemLog();
     log.setUsername(username);
     log.setPath(request.getRequestURI());

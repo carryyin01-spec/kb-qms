@@ -38,12 +38,17 @@ public class CustomUserDetailsService implements UserDetailsService {
     List<GrantedAuthority> authorities = new java.util.ArrayList<>();
     authorities.addAll(roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
     authorities.addAll(perms.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
-    return org.springframework.security.core.userdetails.User
-        .withUsername(user.getUsername())
-        .password(user.getPassword())
-        .authorities(authorities)
-        .accountLocked(user.getStatus() != null && user.getStatus() == 0)
-        .build();
+    
+    return new LoginUser(
+        user.getUsername(),
+        user.getPassword(),
+        user.getName(),
+        user.getStatus() != null && user.getStatus() == 1,
+        true,
+        true,
+        true,
+        authorities
+    );
   }
 }
 

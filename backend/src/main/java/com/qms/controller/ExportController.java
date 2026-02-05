@@ -141,13 +141,17 @@ public class ExportController {
       java.time.LocalDateTime e = java.time.LocalDate.parse(end).atTime(23, 59, 59);
       w.between(CustomerComplaint::getComplaintTime, s, e);
     }
+    w.orderByDesc(CustomerComplaint::getCreatedAt);
     List<CustomerComplaint> list = complaintMapper.selectList(w);
     StringBuilder sb = new StringBuilder();
-    sb.append("id,月份,周期,客户等级,投诉时间,客户代码,产品型号,问题来源,生产部门,订单数量,投诉数量,问题性质,检验员,不良SN,投诉问题描述,不良图片,是否计入指标,严重等级,问题小类,原因(简述),改善措施,责任人,责任线长,责任主管,责任部门,备注,状态\n");
+    sb.append("id,创建用户,创建时间,月份,周期,客户等级,投诉时间,客户代码,产品型号,问题来源,生产部门,订单数量,投诉数量,问题性质,检验员,不良SN,投诉问题描述,不良图片,是否计入指标,严重等级,问题小类,原因(简述),改善措施,责任人,责任线长,责任主管,责任部门,备注,状态\n");
     java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     for (CustomerComplaint i : list) {
       String complaintTimeStr = i.getComplaintTime() != null ? i.getComplaintTime().format(formatter) : "";
+      String createdAtStr = i.getCreatedAt() != null ? i.getCreatedAt().format(formatter) : "";
       sb.append(i.getId()).append(",")
+        .append(escape(i.getCreatedBy())).append(",")
+        .append(escape(createdAtStr)).append(",")
         .append(escape(i.getMonth())).append(",")
         .append(escape(i.getCycle())).append(",")
         .append(escape(i.getCustomerGrade())).append(",")
@@ -196,17 +200,18 @@ public class ExportController {
       java.time.LocalDateTime e = java.time.LocalDate.parse(end).atTime(23, 59, 59);
       w.between(CustomerComplaint::getComplaintTime, s, e);
     }
+    w.orderByDesc(CustomerComplaint::getCreatedAt);
     List<CustomerComplaint> list = complaintMapper.selectList(w);
 
     ExcelWriter writer = ExcelUtil.getWriter(true);
     
     // 设置列宽
     writer.setColumnWidth(-1, 15);
-    writer.setColumnWidth(15, 40); // 不良图片列宽加大
+    writer.setColumnWidth(17, 40); // 不良图片列宽加大
     
     // 写入表头
     writer.writeHeadRow(java.util.Arrays.asList(
-        "ID", "月份", "周期", "客户等级", "投诉时间", "客户代码", "产品型号", "问题来源",
+        "ID", "创建用户", "创建时间", "月份", "周期", "客户等级", "投诉时间", "客户代码", "产品型号", "问题来源",
         "生产部门", "订单数量", "投诉数量", "问题性质", "检验员", "不良SN", "投诉问题描述",
         "不良图片", "是否计入指标", "严重等级", "问题小类", "原因(简述)", "改善措施",
         "责任人", "责任线长", "责任主管", "责任部门", "备注", "状态"
@@ -216,10 +221,11 @@ public class ExportController {
     java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     for (CustomerComplaint i : list) {
       String complaintTimeStr = i.getComplaintTime() != null ? i.getComplaintTime().format(formatter) : "";
+      String createdAtStr = i.getCreatedAt() != null ? i.getCreatedAt().format(formatter) : "";
       
       // 先写入数据行
       writer.writeRow(java.util.Arrays.asList(
-          i.getId(), i.getMonth(), i.getCycle(), i.getCustomerGrade(), complaintTimeStr,
+          i.getId(), i.getCreatedBy(), createdAtStr, i.getMonth(), i.getCycle(), i.getCustomerGrade(), complaintTimeStr,
           i.getCustomerCode(), i.getProductModel(), i.getProblemSource(), i.getProductionDept(),
           i.getOrderQty(), i.getComplaintQty(), i.getProblemNature(), i.getInspector(),
           i.getDefectSn(), i.getComplaintDescription(), "", // 图片列留空给 writeImg
@@ -252,7 +258,7 @@ public class ExportController {
               // Hutool writeImg: 0-indexed column and row
               // 我们希望图片居中一点，稍微缩放
               // 参数: File, leftCol, topRow, rightCol, bottomRow
-              writer.writeImg(imgFile, 15, rowIndex, 15, rowIndex);
+              writer.writeImg(imgFile, 17, rowIndex, 17, rowIndex);
             } catch (Exception ex) {
               System.err.println("Error writing image " + imgFile.getAbsolutePath() + ": " + ex.getMessage());
             }
