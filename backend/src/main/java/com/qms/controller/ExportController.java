@@ -222,10 +222,11 @@ public class ExportController {
     for (CustomerComplaint i : list) {
       String complaintTimeStr = i.getComplaintTime() != null ? i.getComplaintTime().format(formatter) : "";
       String createdAtStr = i.getCreatedAt() != null ? i.getCreatedAt().format(formatter) : "";
+      String cycleStr = i.getCycle() != null ? i.getCycle().replaceFirst("^wk0", "wk") : "";
       
       // 先写入数据行
       writer.writeRow(java.util.Arrays.asList(
-          i.getId(), i.getCreatedBy(), createdAtStr, i.getMonth(), i.getCycle(), i.getCustomerGrade(), complaintTimeStr,
+          i.getId(), i.getCreatedBy(), createdAtStr, i.getMonth(), cycleStr, i.getCustomerGrade(), complaintTimeStr,
           i.getCustomerCode(), i.getProductModel(), i.getProblemSource(), i.getProductionDept(),
           i.getOrderQty(), i.getComplaintQty(), i.getProblemNature(), i.getInspector(),
           i.getDefectSn(), i.getComplaintDescription(), "", // 图片列留空给 writeImg
