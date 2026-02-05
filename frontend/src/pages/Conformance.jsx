@@ -1264,6 +1264,7 @@ export default function Conformance() {
         open={headerOpen}
         title={headerForm.id ? "编辑检验单" : "新增检验单"}
         onClose={() => setHeaderOpen(false)}
+        className="modal-fullscreen"
         footer={
           <>
             <button className="btn-primary mr-2" onClick={saveHeader}>
@@ -1275,7 +1276,7 @@ export default function Conformance() {
           </>
         }
       >
-        <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+        <div className="space-y-4">
           {/* 订单信息表格 - 按照Excel截图样式 */}
           <div>
             <h3 className="text-sm font-bold bg-red-50 px-4 py-2 border-b-2 border-red-600 mb-3">
@@ -2062,7 +2063,7 @@ export default function Conformance() {
                 <th className="sheet-header-yellow">客户编码</th>
                 <th className="sheet-header-yellow">订单号</th>
                 <th className="sheet-header-yellow">作业员/线别</th>
-                <th>操作</th>
+                <th className="sticky right-0 bg-gray-50 z-10 shadow-[-2px_0_5px_rgba(0,0,0,0.05)]">操作</th>
               </tr>
             </thead>
             <tbody>
@@ -2159,7 +2160,7 @@ export default function Conformance() {
                       onKeyDown={(e) => onCellKey(e, idx, 6, l)}
                     />
                   </td>
-                  <td>
+                  <td className="sticky right-0 bg-white z-10 shadow-[-2px_0_5px_rgba(0,0,0,0.05)]">
                     {(userRole === "admin" || userRole === "ROLE_ADMIN" || userRole === "系统管理员") && (
                       <button
                         className="text-red-600 hover:text-red-800"

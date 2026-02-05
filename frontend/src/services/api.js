@@ -1,21 +1,16 @@
 import request from "../utils/request";
 
 export const getDashboardStats = () => request.get("/dashboard/stats");
-export const getIssueStatusDistribution = () => request.get("/dashboard/issue-status-distribution");
-export const getIssueTrend = () => request.get("/dashboard/issue-trend");
-export const getIssueSeverityDistribution = () => request.get("/dashboard/issue-severity-distribution");
-export const getIssueCategoryDistribution = () => request.get("/dashboard/issue-category-distribution");
-export const getIssueModuleDistribution = () => request.get("/dashboard/issue-module-distribution");
-export const getIssueDepartmentDistribution = () => request.get("/dashboard/issue-department-distribution");
-export const getIssueMonthlyTrend = () => request.get("/dashboard/issue-monthly-trend");
-export const getIssueCloseRateTrend = () => request.get("/dashboard/issue-close-rate-trend");
-export const getIssueSeverityStackTrend = () => request.get("/dashboard/issue-severity-stack-trend");
+export const getComplaintStatusDistribution = () => request.get("/dashboard/complaint-status-distribution");
+export const getComplaintTrend = () => request.get("/dashboard/complaint-trend");
+export const getComplaintMonthlyTrend = () => request.get("/dashboard/complaint-monthly-trend");
+export const getComplaintCloseRateTrend = () => request.get("/dashboard/complaint-close-rate-trend");
+export const getComplaintHeatmap = () => request.get("/dashboard/complaint-heatmap");
 export const getKpi = () => request.get("/dashboard/kpi");
 export const getDepartmentRadar = () => request.get("/dashboard/department-radar");
-export const getIssueHeatmap = () => request.get("/dashboard/issue-heatmap");
-export const getVendorRatingDistribution = () => request.get("/dashboard/vendor-rating-distribution");
-export const getQualityPriceScatter = () => request.get("/dashboard/quality-price-scatter");
-export const getSupplyTree = () => request.get("/dashboard/supply-tree");
+
+export const listUsersByRole = (roleCode) => request.get("/users", { params: { page: 1, size: 100, roleCode } });
+
 export const listWorkflowTemplates = () => request.get("/workflow/templates");
 export const createWorkflowTemplate = (data) => request.post("/workflow/templates", data);
 export const listWorkflowInstances = (params) => request.get("/workflow/instances", { params });
@@ -27,4 +22,5 @@ export const createIntegrationMapping = (data) => request.post("/integration/map
 export const listIntegrationConfigs = () => request.get("/integration/configs");
 export const listIntegrationMappings = () => request.get("/integration/mappings");
 export const listIntegrationLogs = () => request.get("/integration/logs");
-export const listUsersByRole = (roleCode) => request.get("/users", { params: { page: 1, size: 100, roleCode } });
+
+

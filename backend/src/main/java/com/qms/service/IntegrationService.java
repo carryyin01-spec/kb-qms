@@ -77,7 +77,7 @@ public class IntegrationService {
       n.setTitle("集成失败：" + cfg.getSystemName());
       n.setContent("映射ID " + mappingId + " 同步失败，错误：" + (result != null ? result.error : error));
       n.setRecipient("admin");
-      n.setStatus("OPEN");
+      n.setStatus("open");
       notificationService.create(n);
       String webhook = null;
       try {

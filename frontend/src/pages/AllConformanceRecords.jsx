@@ -138,19 +138,27 @@ export default function AllConformanceRecords() {
 
   // 统一的获取逻辑
   useEffect(() => {
-    fetchRecordsWith(q, page, pageSize);
+    // 只有当没有 URL 参数时，才执行基于状态的初始查询
+    const params = new URLSearchParams(location.search);
+    if (params.toString().length === 0) {
+      fetchRecordsWith(q, page, pageSize);
+    }
   }, [page, pageSize]);
 
   // 当下拉框筛选条件变化时，重置页码为1
   // 如果当前页已经是1，则直接触发 fetchRecordsWith
   // 如果当前页不是1，setPage(1) 会触发上面的 useEffect
   useEffect(() => {
-    if (page === 1) {
-      fetchRecordsWith(q, 1, pageSize);
-    } else {
-      setPage(1);
+    // 只有当没有 URL 参数时，才响应状态变化
+    const params = new URLSearchParams(location.search);
+    if (params.toString().length === 0) {
+      if (page === 1) {
+        fetchRecordsWith(q, 1, pageSize);
+      } else {
+        setPage(1);
+      }
     }
-  }, [q.qaInspector, q.issueType, q.issueSubtype, q.issueNature, q.ownerDept, q.result, q.startDate, q.endDate]);
+  }, [q.qaInspector, q.issueType, q.issueSubtype, q.issueNature, q.ownerDept, q.result, q.startDate, q.endDate, q.productNo, q.owner]);
 
   useEffect(() => {
     listUsersByRole("ROLE_QA_INSPECTOR").then(res => {
@@ -161,23 +169,26 @@ export default function AllConformanceRecords() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.toString().length === 0) return;
-    const nextQ = { ...q };
-    if (params.get("startDate")) nextQ.startDate = params.get("startDate");
-    if (params.get("endDate")) nextQ.endDate = params.get("endDate");
-    if (params.get("qaInspector")) nextQ.qaInspector = params.get("qaInspector");
-    if (params.get("issueType")) nextQ.issueType = params.get("issueType");
-    if (params.get("issueSubtype")) nextQ.issueSubtype = params.get("issueSubtype");
-    if (params.get("issueNature")) nextQ.issueNature = params.get("issueNature");
-    if (params.get("ownerDept")) nextQ.ownerDept = params.get("ownerDept");
-    if (params.get("owner")) nextQ.owner = params.get("owner");
-    if (params.get("result")) nextQ.result = params.get("result");
-    if (params.get("productNo")) nextQ.productNo = params.get("productNo");
+    
+    // 关键修复：基于初始状态重置，防止旧参数残留
+    const nextQ = { 
+      startDate: params.get("startDate") || "", 
+      endDate: params.get("endDate") || "", 
+      qaInspector: params.get("qaInspector") || "", 
+      issueType: params.get("issueType") || "",
+      issueSubtype: params.get("issueSubtype") || "", 
+      issueNature: params.get("issueNature") || "",
+      ownerDept: params.get("ownerDept") || "", 
+      owner: params.get("owner") || "",
+      result: params.get("result") || "",
+      productNo: params.get("productNo") || ""
+    };
+    
     setQ(nextQ);
-    if (page === 1) {
-        fetchRecordsWith(nextQ, 1, pageSize);
-    } else {
-        setPage(1);
-    }
+    
+    // 强制触发一次查询，不管当前页码
+    fetchRecordsWith(nextQ, 1, pageSize);
+    if (page !== 1) setPage(1);
   }, [location.search]);
 
   const handleSearch = () => {
@@ -538,14 +549,14 @@ export default function AllConformanceRecords() {
         <table className="table w-full text-xs whitespace-nowrap">
           <thead className="sticky top-0 bg-gray-50 z-10">
             <tr>
-              <th className="w-10">
+              <th className="w-10 sticky left-0 bg-gray-50 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">
                 <input
                   type="checkbox"
                   checked={records.length > 0 && selectedIds.length === records.length}
                   onChange={toggleSelectAll}
                 />
               </th>
-              <th>序号</th>
+              <th className="sticky left-10 bg-gray-50 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">序号</th>
               <th>报告编号</th>
               <th>产品SN</th>
               <th>检验日期</th>
@@ -584,14 +595,14 @@ export default function AllConformanceRecords() {
           <tbody>
             {records.map((r, index) => (
               <tr key={r.id} className="hover:bg-gray-50">
-                <td>
+                <td className="sticky left-0 bg-white z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">
                   <input
                     type="checkbox"
                     checked={selectedIds.includes(r.id)}
                     onChange={() => toggleSelect(r.id)}
                   />
                 </td>
-                <td>{(page - 1) * pageSize + index + 1}</td>
+                <td className="sticky left-10 bg-white z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">{(page - 1) * pageSize + index + 1}</td>
                 <td className="font-mono">{r.reportNo}</td>
                 <td className="font-mono">{r.productSn}</td>
                 <td>{r.inspectedAt?.replace('T', ' ')}</td>

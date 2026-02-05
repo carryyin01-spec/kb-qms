@@ -1,65 +1,43 @@
 import { useEffect, useState } from "react";
 import { getDashboardStats, listUsersByRole } from "../services/api";
 import { getConformanceGlobalStats } from "../services/conformanceService";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ScatterChart, Scatter, ZAxis, Treemap } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from "recharts";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [stats, setStats] = useState({ documents: 0, issues: 0, audits: 0, notifications: 0 });
+  const [stats, setStats] = useState({ documents: 0, complaints: 0, audits: 0, notifications: 0 });
   const [conformanceStats, setConformanceStats] = useState({
-    dayTotal: 0,
-    dayFail: 0,
-    dayPassRate: 0,
-    weekTotal: 0,
-    weekFail: 0,
-    weekPassRate: 0,
-    monthTotal: 0,
-    monthFail: 0,
-    monthPassRate: 0,
-    allTotal: 0,
-    allFail: 0,
-    allPassRate: 0,
+    dayTotal: 0, dayFail: 0, dayPassRate: 0,
+    weekTotal: 0, weekFail: 0, weekPassRate: 0,
+    monthTotal: 0, monthFail: 0, monthPassRate: 0,
+    allTotal: 0, allFail: 0, allPassRate: 0,
   });
-  const [dist, setDist] = useState({ OPEN: 0, INVESTIGATING: 0, RESOLVED: 0, CLOSED: 0 });
+  const [dist, setDist] = useState({ open: 0, "on-going": 0, closed: 0 });
   const [trend, setTrend] = useState([]);
-  const [sev, setSev] = useState({ LOW: 0, MEDIUM: 0, HIGH: 0 });
-  const [cat, setCat] = useState({ PROCESS: 0, DESIGN: 0, SUPPLIER: 0, AUDIT: 0 });
-  const [mod, setMod] = useState({ MFG: 0, DESIGN: 0, SUPPLIER: 0, QA: 0 });
-  const [dep, setDep] = useState({ MFG: 0, RND: 0, PROC: 0, QA: 0 });
   const [monthly, setMonthly] = useState([]);
   const [closeRateTrend, setCloseRateTrend] = useState([]);
-  const [sevStack, setSevStack] = useState([]);
-  const [kpi, setKpi] = useState({ openIssues: 0, closeRate: 0, avgResolutionDays: 0, overdueIssues: 0 });
+  const [kpi, setKpi] = useState({ openComplaints: 0, closeRate: 0, avgResolutionDays: 0, overdueComplaints: 0 });
   const [radar, setRadar] = useState([]);
   const [heatmap, setHeatmap] = useState([]);
-  const [vendorRating, setVendorRating] = useState({ A: 0, B: 0, C: 0 });
-  const [qpScatter, setQpScatter] = useState([]);
-  const [supplyTree, setSupplyTree] = useState([]);
   const [qaUsers, setQaUsers] = useState([]);
   const [qaInspector, setQaInspector] = useState("");
+
+  const COLORS = ["#3b82f6", "#f59e0b", "#10b981", "#ef4444"];
 
   useEffect(() => {
     getDashboardStats().then(res => { if (res.code === 200) setStats(res.data); });
     listUsersByRole("ROLE_QA_INSPECTOR").then(res => {
       if (res.code === 200) setQaUsers(res.data?.records || []);
     });
-    import("../services/api").then(({ getIssueStatusDistribution, getIssueTrend, getIssueSeverityDistribution, getIssueCategoryDistribution, getIssueModuleDistribution, getIssueDepartmentDistribution, getIssueMonthlyTrend, getIssueCloseRateTrend, getIssueSeverityStackTrend, getKpi, getDepartmentRadar, getIssueHeatmap, getVendorRatingDistribution, getQualityPriceScatter, getSupplyTree }) => {
-      getIssueStatusDistribution().then(r => { if (r.code === 200) setDist(r.data); });
-      getIssueTrend().then(r => { if (r.code === 200) setTrend(r.data || []); });
-      getIssueSeverityDistribution().then(r => { if (r.code === 200) setSev(r.data || {}); });
-      getIssueCategoryDistribution().then(r => { if (r.code === 200) setCat(r.data || {}); });
-      getIssueModuleDistribution().then(r => { if (r.code === 200) setMod(r.data || {}); });
-      getIssueDepartmentDistribution().then(r => { if (r.code === 200) setDep(r.data || {}); });
-      getIssueMonthlyTrend().then(r => { if (r.code === 200) setMonthly(r.data || []); });
-      getIssueCloseRateTrend().then(r => { if (r.code === 200) setCloseRateTrend(r.data || []); });
-      getIssueSeverityStackTrend().then(r => { if (r.code === 200) setSevStack(r.data || []); });
+    import("../services/api").then(({ getComplaintStatusDistribution, getComplaintTrend, getComplaintMonthlyTrend, getComplaintCloseRateTrend, getKpi, getDepartmentRadar, getComplaintHeatmap }) => {
+      getComplaintStatusDistribution().then(r => { if (r.code === 200) setDist(r.data); });
+      getComplaintTrend().then(r => { if (r.code === 200) setTrend(r.data || []); });
+      getComplaintMonthlyTrend().then(r => { if (r.code === 200) setMonthly(r.data || []); });
+      getComplaintCloseRateTrend().then(r => { if (r.code === 200) setCloseRateTrend(r.data || []); });
       getKpi().then(r => { if (r.code === 200) setKpi(r.data || {}); });
       getDepartmentRadar().then(r => { if (r.code === 200) setRadar(r.data || []); });
-      getIssueHeatmap().then(r => { if (r.code === 200) setHeatmap(r.data || []); });
-      getVendorRatingDistribution().then(r => { if (r.code === 200) setVendorRating(r.data || {}); });
-      getQualityPriceScatter().then(r => { if (r.code === 200) setQpScatter(r.data || []); });
-      getSupplyTree().then(r => { if (r.code === 200) setSupplyTree(r.data || []); });
+      getComplaintHeatmap().then(r => { if (r.code === 200) setHeatmap(r.data || []); });
     });
   }, []);
 
@@ -78,65 +56,24 @@ export default function Dashboard() {
     const today = new Date();
     if (range === "day") {
       const v = formatDate(today);
-      params.set("startDate", v);
-      params.set("endDate", v);
+      params.set("startDate", v); params.set("endDate", v);
     }
     if (range === "week") {
-      const start = new Date(today);
-      start.setDate(start.getDate() - 6);
-      params.set("startDate", formatDate(start));
-      params.set("endDate", formatDate(today));
+      const start = new Date(today); start.setDate(start.getDate() - 6);
+      params.set("startDate", formatDate(start)); params.set("endDate", formatDate(today));
     }
     if (range === "month") {
       const start = new Date(today.getFullYear(), today.getMonth(), 1);
       const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-      params.set("startDate", formatDate(start));
-      params.set("endDate", formatDate(end));
+      params.set("startDate", formatDate(start)); params.set("endDate", formatDate(end));
+    }
+    if (range === "all") {
+      // 不设置日期范围即为所有
     }
     navigate(`/conformance-full-records?${params.toString()}`);
   };
 
-  const data = [
-    { name: "文档", value: stats.documents },
-    { name: "问题", value: stats.issues },
-    { name: "审核", value: stats.audits },
-    { name: "通知", value: stats.notifications }
-  ];
-  const distData = [
-    { name: "打开", value: dist.OPEN },
-    { name: "调查中", value: dist.INVESTIGATING },
-    { name: "已解决", value: dist.RESOLVED },
-    { name: "已关闭", value: dist.CLOSED }
-  ];
-  const COLORS = ["#60a5fa","#f59e0b","#10b981","#ef4444"];
-  const sevData = [
-    { name: "低", value: sev.LOW },
-    { name: "中", value: sev.MEDIUM },
-    { name: "高", value: sev.HIGH }
-  ];
-  const catData = [
-    { name: "生产", value: cat.PROCESS || 0 },
-    { name: "设计", value: cat.DESIGN || 0 },
-    { name: "供应商", value: cat.SUPPLIER || 0 },
-    { name: "审核", value: cat.AUDIT || 0 }
-  ];
-  const modData = [
-    { name: "生产模块", value: mod.MFG || 0 },
-    { name: "设计模块", value: mod.DESIGN || 0 },
-    { name: "供应商模块", value: mod.SUPPLIER || 0 },
-    { name: "质量模块", value: mod.QA || 0 }
-  ];
-  const depData = [
-    { name: "制造部", value: dep.MFG || 0 },
-    { name: "研发部", value: dep.RND || 0 },
-    { name: "采购部", value: dep.PROC || 0 },
-    { name: "质量部", value: dep.QA || 0 }
-  ];
-  const ratingData = [
-    { name: "A", value: vendorRating.A || 0 },
-    { name: "B", value: vendorRating.B || 0 },
-    { name: "C", value: vendorRating.C || 0 }
-  ];
+  const distData = Object.entries(dist).map(([name, value]) => ({ name, value }));
   const gaugeData = [
     { name: "rate", value: Math.min(100, Math.max(0, kpi.closeRate || 0)) },
     { name: "rest", value: Math.max(0, 100 - (kpi.closeRate || 0)) }
@@ -147,7 +84,7 @@ export default function Dashboard() {
       <h1 className="text-2xl font-semibold mb-4">仪表盘</h1>
       <div className="mb-4 flex gap-3">
         <Link to="/documents" className="px-3 py-2 bg-blue-600 text-white rounded">进入文档管理</Link>
-        <Link to="/issues" className="px-3 py-2 bg-blue-600 text-white rounded">进入质量问题</Link>
+        <Link to="/complaints" className="px-3 py-2 bg-blue-600 text-white rounded">进入客诉管理</Link>
         <Link to="/conformance" className="px-3 py-2 bg-blue-600 text-white rounded">进入符合性检验</Link>
         <Link to="/conformance-full-records" className="px-3 py-2 bg-indigo-600 text-white rounded">SN记录表</Link>
       </div>
@@ -160,11 +97,12 @@ export default function Dashboard() {
           ))}
         </select>
       </div>
+      
       <div className="mb-6 grid grid-cols-2 gap-6">
         <div className="card">
           <div className="card-header flex justify-between items-center">
             <span>当日合格率监控</span>
-            <Link to="/conformance" className="text-xs text-blue-600 hover:underline">查看详情</Link>
+            <Link to="/conformance-full-records" className="text-xs text-blue-600 hover:underline">查看详情</Link>
           </div>
           <div className="card-body">
             <div className="grid grid-cols-3 gap-3">
@@ -186,7 +124,7 @@ export default function Dashboard() {
         <div className="card">
           <div className="card-header flex justify-between items-center">
             <span>本周合格率监控</span>
-            <Link to="/conformance" className="text-xs text-blue-600 hover:underline">查看详情</Link>
+            <Link to="/conformance-full-records" className="text-xs text-blue-600 hover:underline">查看详情</Link>
           </div>
           <div className="card-body">
             <div className="grid grid-cols-3 gap-3">
@@ -205,12 +143,10 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-      </div>
-      <div className="mb-6 grid grid-cols-2 gap-6">
         <div className="card">
           <div className="card-header flex justify-between items-center">
             <span>本月合格率监控</span>
-            <Link to="/conformance" className="text-xs text-blue-600 hover:underline">查看详情</Link>
+            <Link to="/conformance-full-records" className="text-xs text-blue-600 hover:underline">查看详情</Link>
           </div>
           <div className="card-body">
             <div className="grid grid-cols-3 gap-3">
@@ -232,7 +168,7 @@ export default function Dashboard() {
         <div className="card">
           <div className="card-header flex justify-between items-center">
             <span>所有合格率监控</span>
-            <Link to="/conformance" className="text-xs text-blue-600 hover:underline">查看详情</Link>
+            <Link to="/conformance-full-records" className="text-xs text-blue-600 hover:underline">查看详情</Link>
           </div>
           <div className="card-body">
             <div className="grid grid-cols-3 gap-3">
@@ -252,13 +188,14 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
       <div className="grid grid-cols-4 gap-3 mb-4">
         <div className="card">
-          <div className="card-header">KPI</div>
+          <div className="card-header">客诉 KPI</div>
           <div className="card-body grid grid-cols-2 gap-3">
             <div>
-              <div className="text-sm text-gray-500">未关闭问题</div>
-              <div className="text-xl font-semibold">{kpi.openIssues || 0}</div>
+              <div className="text-sm text-gray-500">未关闭客诉</div>
+              <div className="text-xl font-semibold">{kpi.openComplaints || 0}</div>
             </div>
             <div>
               <div className="text-sm text-gray-500">关闭率</div>
@@ -269,13 +206,13 @@ export default function Dashboard() {
               <div className="text-xl font-semibold">{kpi.avgResolutionDays || 0}</div>
             </div>
             <div>
-              <div className="text-sm text-gray-500">超期问题</div>
-              <div className="text-xl font-semibold">{kpi.overdueIssues || 0}</div>
+              <div className="text-sm text-gray-500">超期客诉</div>
+              <div className="text-xl font-semibold">{kpi.overdueComplaints || 0}</div>
             </div>
           </div>
         </div>
         <div className="card col-span-3">
-          <div className="card-header">关闭率仪表</div>
+          <div className="card-header">客诉关闭率</div>
           <div className="card-body h-40">
             <ResponsiveContainer>
               <PieChart>
@@ -289,138 +226,57 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-      <div className="h-64">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="value" fill="#3b82f6" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+
       <div className="mt-6 grid grid-cols-2 gap-6">
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie dataKey="value" data={distData} outerRadius={100} label>
-                {distData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+        <div className="card h-80">
+          <div className="card-header">客诉状态分布</div>
+          <div className="card-body h-64">
+            <ResponsiveContainer>
+              <PieChart>
+                <Pie dataKey="value" data={distData} outerRadius={80} label>
+                  {distData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={trend}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="count" stroke="#6366f1" />
-            </LineChart>
-          </ResponsiveContainer>
+        <div className="card h-80">
+          <div className="card-header">客诉周趋势</div>
+          <div className="card-body h-64">
+            <ResponsiveContainer>
+              <LineChart data={trend}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="count" stroke="#6366f1" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
+
       <div className="mt-6 grid grid-cols-2 gap-6">
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={monthly}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="count" fill="#3b82f6" />
-            </BarChart>
-          </ResponsiveContainer>
+        <div className="card h-80">
+          <div className="card-header">月度客诉数量</div>
+          <div className="card-body h-64">
+            <ResponsiveContainer>
+              <BarChart data={monthly}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="count" fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={closeRateTrend}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="rate" stroke="#ef4444" />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      <div className="mt-6 h-64 card">
-        <div className="card-header">按严重度堆叠趋势</div>
-        <div className="card-body h-48">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={sevStack}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Area type="monotone" dataKey="LOW" stackId="a" stroke="#60a5fa" fill="#60a5fa" />
-              <Area type="monotone" dataKey="MEDIUM" stackId="a" stroke="#f59e0b" fill="#f59e0b" />
-              <Area type="monotone" dataKey="HIGH" stackId="a" stroke="#ef4444" fill="#ef4444" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      <div className="mt-6 grid grid-cols-2 gap-6">
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie dataKey="value" data={sevData} outerRadius={100} label>
-                {sevData.map((entry, index) => (
-                  <Cell key={`cell-sev-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie dataKey="value" data={catData} outerRadius={100} label>
-                {catData.map((entry, index) => (
-                  <Cell key={`cell-cat-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      <div className="mt-6 grid grid-cols-2 gap-6">
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie dataKey="value" data={modData} outerRadius={100} label>
-                {modData.map((entry, index) => (
-                  <Cell key={`cell-mod-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie dataKey="value" data={depData} outerRadius={100} label>
-                {depData.map((entry, index) => (
-                  <Cell key={`cell-dep-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      <div className="mt-6 grid grid-cols-2 gap-6">
-        <div className="card h-64">
+        <div className="card h-80">
           <div className="card-header">部门绩效雷达</div>
-          <div className="card-body h-48">
+          <div className="card-body h-64">
             <ResponsiveContainer>
               <RadarChart data={radar}>
                 <PolarGrid />
@@ -430,82 +286,6 @@ export default function Dashboard() {
                 <Tooltip />
               </RadarChart>
             </ResponsiveContainer>
-          </div>
-        </div>
-        <div className="card h-64">
-          <div className="card-header">供应商评级分布</div>
-          <div className="card-body h-48">
-            <ResponsiveContainer>
-              <PieChart>
-                <Pie dataKey="value" data={ratingData} outerRadius={90} label>
-                  {ratingData.map((entry, index) => (
-                    <Cell key={`cell-rating-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-      <div className="mt-6 grid grid-cols-2 gap-6">
-        <div className="card h-64">
-          <div className="card-header">质量 vs 价格散点</div>
-          <div className="card-body h-48">
-            <ResponsiveContainer>
-              <ScatterChart>
-                <CartesianGrid />
-                <XAxis type="number" dataKey="quality" name="质量" />
-                <YAxis type="number" dataKey="price" name="价格" />
-                <ZAxis range={[60, 60]} />
-                <Scatter data={qpScatter} fill="#10b981" />
-                <Tooltip />
-              </ScatterChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-        <div className="card h-64">
-          <div className="card-header">供应链层级树</div>
-          <div className="card-body h-48">
-            <ResponsiveContainer>
-              <Treemap data={supplyTree} dataKey="size" stroke="#fff" fill="#3b82f6" />
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-      <div className="mt-6 card">
-        <div className="card-header">问题分布热力图</div>
-        <div className="card-body">
-          <div className="overflow-x-auto">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>模块\\严重度</th>
-                  <th>低</th>
-                  <th>中</th>
-                  <th>高</th>
-                </tr>
-              </thead>
-              <tbody>
-                {["MFG","DESIGN","SUPPLIER","QA"].map(m => {
-                  const row = {
-                    LOW: (heatmap.find(h => h.module===m && h.severity==="LOW")?.count) || 0,
-                    MEDIUM: (heatmap.find(h => h.module===m && h.severity==="MEDIUM")?.count) || 0,
-                    HIGH: (heatmap.find(h => h.module===m && h.severity==="HIGH")?.count) || 0
-                  };
-                  const maxv = Math.max(row.LOW, row.MEDIUM, row.HIGH, 1);
-                  const bg = v => ({ backgroundColor: `rgba(99,102,241,${(v/maxv)*0.8})` });
-                  return (
-                    <tr key={m}>
-                      <td>{m}</td>
-                      <td style={bg(row.LOW)}>{row.LOW}</td>
-                      <td style={bg(row.MEDIUM)}>{row.MEDIUM}</td>
-                      <td style={bg(row.HIGH)}>{row.HIGH}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
           </div>
         </div>
       </div>

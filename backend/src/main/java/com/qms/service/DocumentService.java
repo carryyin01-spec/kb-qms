@@ -18,7 +18,6 @@ public class DocumentService {
     LambdaQueryWrapper<Document> w = new LambdaQueryWrapper<>();
     w.eq(status != null && !status.isEmpty(), Document::getStatus, status);
     w.like(title != null && !title.isEmpty(), Document::getTitle, title);
-    w.eq(Document::getDeleted, 0);
     return documentMapper.selectPage(Page.of(page, size), w);
   }
 
@@ -36,11 +35,7 @@ public class DocumentService {
   }
 
   public void delete(Long id) {
-    Document d = documentMapper.selectById(id);
-    if (d != null) {
-      d.setDeleted(1);
-      documentMapper.updateById(d);
-    }
+    documentMapper.deleteById(id);
   }
 }
 

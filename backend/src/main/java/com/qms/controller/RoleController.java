@@ -35,7 +35,6 @@ public class RoleController {
     LambdaQueryWrapper<Role> w = new LambdaQueryWrapper<>();
     w.like(name != null && !name.isEmpty(), Role::getName, name);
     w.like(code != null && !code.isEmpty(), Role::getCode, code);
-    w.eq(Role::getDeleted, 0);
     return ApiResponse.ok(roleMapper.selectPage(Page.of(page, size), w));
   }
 
@@ -58,11 +57,7 @@ public class RoleController {
   @DeleteMapping("/{id}")
   @PreAuthorize("hasRole('ADMIN')")
   public ApiResponse<Void> delete(@PathVariable Long id) {
-    Role r = roleMapper.selectById(id);
-    if (r != null) {
-      r.setDeleted(1);
-      roleMapper.updateById(r);
-    }
+    roleMapper.deleteById(id);
     return ApiResponse.ok(null);
   }
 

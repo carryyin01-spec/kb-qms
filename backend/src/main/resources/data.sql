@@ -17,11 +17,11 @@ INSERT INTO permissions (id, name, code) VALUES (2, '文档修改', 'DOC_UPDATE'
 INSERT INTO permissions (id, name, code) VALUES (3, '文档删除', 'DOC_DELETE');
 INSERT INTO permissions (id, name, code) VALUES (4, '文档导出', 'DOC_EXPORT');
 INSERT INTO permissions (id, name, code) VALUES (5, '文档工作流', 'DOC_WORKFLOW');
-INSERT INTO permissions (id, name, code) VALUES (6, '问题创建', 'ISSUE_CREATE');
-INSERT INTO permissions (id, name, code) VALUES (7, '问题修改', 'ISSUE_UPDATE');
-INSERT INTO permissions (id, name, code) VALUES (8, '问题删除', 'ISSUE_DELETE');
-INSERT INTO permissions (id, name, code) VALUES (9, '问题导出', 'ISSUE_EXPORT');
-INSERT INTO permissions (id, name, code) VALUES (10, '问题工作流', 'ISSUE_WORKFLOW');
+INSERT INTO permissions (id, name, code) VALUES (6, '客诉创建', 'COMPLAINT_CREATE');
+INSERT INTO permissions (id, name, code) VALUES (7, '客诉修改', 'COMPLAINT_UPDATE');
+INSERT INTO permissions (id, name, code) VALUES (8, '客诉删除', 'COMPLAINT_DELETE');
+INSERT INTO permissions (id, name, code) VALUES (9, '客诉导出', 'COMPLAINT_EXPORT');
+INSERT INTO permissions (id, name, code) VALUES (10, '客诉工作流', 'COMPLAINT_WORKFLOW');
 INSERT INTO permissions (id, name, code) VALUES (11, '系统管理菜单', 'MENU_ADMIN');
 INSERT INTO permissions (id, name, code) VALUES (12, '符合性检验菜单', 'MENU_CONFORMANCE');
 
@@ -83,15 +83,15 @@ INSERT INTO user_roles (user_id, role_id) VALUES (3, 4);
 INSERT INTO user_roles (user_id, role_id) VALUES (4, 7);
  
 DELETE FROM documents;
-DELETE FROM quality_issues;
+DELETE FROM customer_complaints;
  
 INSERT INTO documents (id, title, content, status, owner_id) VALUES
 (1, '质量手册', '质量管理制度与流程', 'APPROVED', 1),
 (2, '作业指导书A', '操作步骤说明', 'DRAFT', 2);
  
-INSERT INTO quality_issues (id, title, description, severity, status, reporter_id) VALUES
-(1, '包装破损', '出货包装出现破损', 'MEDIUM', 'OPEN', 2),
-(2, '尺寸偏差', '部件尺寸超出公差', 'HIGH', 'INVESTIGATING', 3);
+INSERT INTO customer_complaints (id, customer_code, product_model, problem_nature, status) VALUES
+(1, '客户A', '产品X 型号1', '外观不良', 'open'),
+(2, '客户B', '产品Y 型号2', '功能失效', 'on-going');
  
 DELETE FROM document_versions;
 INSERT INTO document_versions (id, document_id, version_no, content) VALUES

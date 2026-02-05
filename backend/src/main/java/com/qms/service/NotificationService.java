@@ -19,7 +19,6 @@ public class NotificationService {
     w.like(title != null && !title.isEmpty(), Notification::getTitle, title);
     w.eq(status != null && !status.isEmpty(), Notification::getStatus, status);
     w.like(recipient != null && !recipient.isEmpty(), Notification::getRecipient, recipient);
-    w.eq(Notification::getDeleted, 0);
     return mapper.selectPage(Page.of(page, size), w);
   }
 
@@ -37,10 +36,6 @@ public class NotificationService {
   }
 
   public void delete(Long id) {
-    Notification n = mapper.selectById(id);
-    if (n != null) {
-      n.setDeleted(1);
-      mapper.updateById(n);
-    }
+    mapper.deleteById(id);
   }
 }

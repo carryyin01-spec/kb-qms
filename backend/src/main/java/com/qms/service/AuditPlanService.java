@@ -18,7 +18,6 @@ public class AuditPlanService {
     LambdaQueryWrapper<AuditPlan> w = new LambdaQueryWrapper<>();
     w.like(title != null && !title.isEmpty(), AuditPlan::getTitle, title);
     w.eq(status != null && !status.isEmpty(), AuditPlan::getStatus, status);
-    w.eq(AuditPlan::getDeleted, 0);
     return mapper.selectPage(Page.of(page, size), w);
   }
 
@@ -36,11 +35,7 @@ public class AuditPlanService {
   }
 
   public void delete(Long id) {
-    AuditPlan p = mapper.selectById(id);
-    if (p != null) {
-      p.setDeleted(1);
-      mapper.updateById(p);
-    }
+    mapper.deleteById(id);
   }
 }
 

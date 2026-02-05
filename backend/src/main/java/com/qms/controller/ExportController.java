@@ -1,8 +1,9 @@
 package com.qms.controller;
 
 import com.qms.entity.Document;
+import com.qms.entity.CustomerComplaint;
 import com.qms.mapper.DocumentMapper;
-import com.qms.mapper.QualityIssueMapper;
+import com.qms.mapper.CustomerComplaintMapper;
 import com.qms.dto.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,15 +22,31 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import org.springframework.beans.factory.annotation.Value;
+import cn.hutool.poi.excel.ExcelUtil;
+import cn.hutool.poi.excel.ExcelWriter;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.util.IOUtils;
+import java.io.FileInputStream;
+import java.io.InputStream;
+
 @RestController
 @RequestMapping("/export")
 public class ExportController {
   private final DocumentMapper documentMapper;
-  private final QualityIssueMapper issueMapper;
+  private final CustomerComplaintMapper complaintMapper;
 
-  public ExportController(DocumentMapper documentMapper, QualityIssueMapper issueMapper) {
+  @Value("${file.upload-dir}")
+  private String uploadDir;
+
+  @jakarta.annotation.PostConstruct
+  public void init() {
+    System.out.println("ExportController initialized. uploadDir: " + uploadDir);
+  }
+
+  public ExportController(DocumentMapper documentMapper, CustomerComplaintMapper complaintMapper) {
     this.documentMapper = documentMapper;
-    this.issueMapper = issueMapper;
+    this.complaintMapper = complaintMapper;
   }
 
   @GetMapping("/documents.csv")
@@ -104,108 +121,157 @@ public class ExportController {
     return v;
   }
 
-  @PostMapping("/upload")
-  public ApiResponse<Map<String, String>> upload(@RequestParam("file") MultipartFile file) throws IOException {
-    if (file.isEmpty()) {
-      return ApiResponse.fail(400, "文件为空");
-    }
-    String baseDir = "uploads";
-    String dateDir = LocalDate.now().toString();
-    File dir = new File(baseDir, dateDir);
-    if (!dir.exists()) {
-      dir.mkdirs();
-    }
-    String original = org.springframework.util.StringUtils.cleanPath(file.getOriginalFilename());
-    String filename = UUID.randomUUID().toString() + "_" + original;
-    File dest = new File(dir, filename);
-    file.transferTo(dest);
-    String url = "/api/files/" + dateDir + "/" + filename;
-    return ApiResponse.ok(Map.of("url", url));
-  }
-
-  @GetMapping("/issues.csv")
-  @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ISSUE_EXPORT') or hasRole('ADMIN')")
-  public void exportIssues(HttpServletResponse resp,
+  @GetMapping("/complaints.csv")
+  @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('COMPLAINT_EXPORT') or hasRole('ADMIN')")
+  public void exportComplaints(HttpServletResponse resp,
                            @RequestParam(required = false) String status,
-                           @RequestParam(required = false) String severity,
-                           @RequestParam(required = false) String title,
-                           @RequestParam(required = false) String category,
-                           @RequestParam(required = false) String module,
-                           @RequestParam(required = false) String department,
+                           @RequestParam(required = false) String customerCode,
+                           @RequestParam(required = false) String productModel,
                            @RequestParam(required = false) String start,
                            @RequestParam(required = false) String end) throws IOException {
     resp.setContentType("text/csv;charset=UTF-8");
-    String filename = URLEncoder.encode("issues.csv", StandardCharsets.UTF_8);
+    String filename = URLEncoder.encode("complaints.csv", StandardCharsets.UTF_8);
     resp.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + filename);
-    com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.qms.entity.QualityIssue> w = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
-    w.like(title != null && !title.isEmpty(), com.qms.entity.QualityIssue::getTitle, title);
-    w.eq(status != null && !status.isEmpty(), com.qms.entity.QualityIssue::getStatus, status);
-    w.eq(severity != null && !severity.isEmpty(), com.qms.entity.QualityIssue::getSeverity, severity);
-    w.eq(category != null && !category.isEmpty(), com.qms.entity.QualityIssue::getCategory, category);
-    w.eq(module != null && !module.isEmpty(), com.qms.entity.QualityIssue::getModule, module);
-    w.eq(department != null && !department.isEmpty(), com.qms.entity.QualityIssue::getDepartment, department);
+    com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<CustomerComplaint> w = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+    w.like(customerCode != null && !customerCode.isEmpty(), CustomerComplaint::getCustomerCode, customerCode);
+    w.like(productModel != null && !productModel.isEmpty(), CustomerComplaint::getProductModel, productModel);
+    w.eq(status != null && !status.isEmpty(), CustomerComplaint::getStatus, status);
     if (start != null && !start.isEmpty() && end != null && !end.isEmpty()) {
       java.time.LocalDateTime s = java.time.LocalDate.parse(start).atStartOfDay();
       java.time.LocalDateTime e = java.time.LocalDate.parse(end).atTime(23, 59, 59);
-      w.between(com.qms.entity.QualityIssue::getCreatedAt, s, e);
+      w.between(CustomerComplaint::getComplaintTime, s, e);
     }
-    java.util.List<com.qms.entity.QualityIssue> list = issueMapper.selectList(w);
+    List<CustomerComplaint> list = complaintMapper.selectList(w);
     StringBuilder sb = new StringBuilder();
-    sb.append("id,title,severity,category,module,department,status,reporterId\n");
-    for (com.qms.entity.QualityIssue i : list) {
+    sb.append("id,月份,周期,客户等级,投诉时间,客户代码,产品型号,问题来源,生产部门,订单数量,投诉数量,问题性质,检验员,不良SN,投诉问题描述,不良图片,是否计入指标,严重等级,问题小类,原因(简述),改善措施,责任人,责任线长,责任主管,责任部门,备注,状态\n");
+    java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    for (CustomerComplaint i : list) {
+      String complaintTimeStr = i.getComplaintTime() != null ? i.getComplaintTime().format(formatter) : "";
       sb.append(i.getId()).append(",")
-        .append(escape(i.getTitle())).append(",")
-        .append(escape(i.getSeverity())).append(",")
-        .append(escape(i.getCategory())).append(",")
-        .append(escape(i.getModule())).append(",")
-        .append(escape(i.getDepartment())).append(",")
-        .append(escape(i.getStatus())).append(",")
-        .append(i.getReporterId() == null ? "" : i.getReporterId())
+        .append(escape(i.getMonth())).append(",")
+        .append(escape(i.getCycle())).append(",")
+        .append(escape(i.getCustomerGrade())).append(",")
+        .append(escape(complaintTimeStr)).append(",")
+        .append(escape(i.getCustomerCode())).append(",")
+        .append(escape(i.getProductModel())).append(",")
+        .append(escape(i.getProblemSource())).append(",")
+        .append(escape(i.getProductionDept())).append(",")
+        .append(i.getOrderQty()).append(",")
+        .append(i.getComplaintQty()).append(",")
+        .append(escape(i.getProblemNature())).append(",")
+        .append(escape(i.getInspector())).append(",")
+        .append(escape(i.getDefectSn())).append(",")
+        .append(escape(i.getComplaintDescription())).append(",")
+        .append(escape(i.getDefectPictures())).append(",")
+        .append(escape(i.getIsIncludedInIndicators())).append(",")
+        .append(escape(i.getSeverityLevel())).append(",")
+        .append(escape(i.getProblemSubtype())).append(",")
+        .append(escape(i.getRootCause())).append(",")
+        .append(escape(i.getImprovementMeasures())).append(",")
+        .append(escape(i.getOwner())).append(",")
+        .append(escape(i.getLineLeader())).append(",")
+        .append(escape(i.getSupervisor())).append(",")
+        .append(escape(i.getResponsibleDept())).append(",")
+        .append(escape(i.getRemark())).append(",")
+        .append(escape(i.getStatus()))
         .append("\n");
     }
     resp.getWriter().write(sb.toString());
   }
 
-  @GetMapping("/issues.xlsx")
-  @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ISSUE_EXPORT') or hasRole('ADMIN')")
-  public void exportIssuesXlsx(HttpServletResponse resp,
+  @GetMapping("/complaints.xlsx")
+  @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('COMPLAINT_EXPORT') or hasRole('ADMIN')")
+  public void exportComplaintsXlsx(HttpServletResponse resp,
                                @RequestParam(required = false) String status,
-                               @RequestParam(required = false) String severity,
-                               @RequestParam(required = false) String title,
-                               @RequestParam(required = false) String category,
-                               @RequestParam(required = false) String module,
-                               @RequestParam(required = false) String department,
+                               @RequestParam(required = false) String customerCode,
+                               @RequestParam(required = false) String productModel,
                                @RequestParam(required = false) String start,
                                @RequestParam(required = false) String end) throws IOException {
-    resp.setContentType("application/vnd.ms-excel;charset=UTF-8");
-    String filename = URLEncoder.encode("issues.xlsx", StandardCharsets.UTF_8);
-    resp.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + filename);
-    com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.qms.entity.QualityIssue> w = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
-    w.like(title != null && !title.isEmpty(), com.qms.entity.QualityIssue::getTitle, title);
-    w.eq(status != null && !status.isEmpty(), com.qms.entity.QualityIssue::getStatus, status);
-    w.eq(severity != null && !severity.isEmpty(), com.qms.entity.QualityIssue::getSeverity, severity);
-    w.eq(category != null && !category.isEmpty(), com.qms.entity.QualityIssue::getCategory, category);
-    w.eq(module != null && !module.isEmpty(), com.qms.entity.QualityIssue::getModule, module);
-    w.eq(department != null && !department.isEmpty(), com.qms.entity.QualityIssue::getDepartment, department);
+    com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<CustomerComplaint> w = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+    w.like(customerCode != null && !customerCode.isEmpty(), CustomerComplaint::getCustomerCode, customerCode);
+    w.like(productModel != null && !productModel.isEmpty(), CustomerComplaint::getProductModel, productModel);
+    w.eq(status != null && !status.isEmpty(), CustomerComplaint::getStatus, status);
     if (start != null && !start.isEmpty() && end != null && !end.isEmpty()) {
       java.time.LocalDateTime s = java.time.LocalDate.parse(start).atStartOfDay();
       java.time.LocalDateTime e = java.time.LocalDate.parse(end).atTime(23, 59, 59);
-      w.between(com.qms.entity.QualityIssue::getCreatedAt, s, e);
+      w.between(CustomerComplaint::getComplaintTime, s, e);
     }
-    java.util.List<com.qms.entity.QualityIssue> issues = issueMapper.selectList(w);
-    StringBuilder sb = new StringBuilder();
-    sb.append("<table border='1'><tr><th>ID</th><th>标题</th><th>严重度</th><th>类别</th><th>模块</th><th>责任部门</th><th>状态</th></tr>");
-    for (com.qms.entity.QualityIssue i : issues) {
-      sb.append("<tr><td>").append(i.getId()).append("</td><td>")
-        .append(i.getTitle() == null ? "" : i.getTitle()).append("</td><td>")
-        .append(i.getSeverity() == null ? "" : i.getSeverity()).append("</td><td>")
-        .append(i.getCategory() == null ? "" : i.getCategory()).append("</td><td>")
-        .append(i.getModule() == null ? "" : i.getModule()).append("</td><td>")
-        .append(i.getDepartment() == null ? "" : i.getDepartment()).append("</td><td>")
-        .append(i.getStatus() == null ? "" : i.getStatus()).append("</td></tr>");
+    List<CustomerComplaint> list = complaintMapper.selectList(w);
+
+    ExcelWriter writer = ExcelUtil.getWriter(true);
+    
+    // 设置列宽
+    writer.setColumnWidth(-1, 15);
+    writer.setColumnWidth(15, 40); // 不良图片列宽加大
+    
+    // 写入表头
+    writer.writeHeadRow(java.util.Arrays.asList(
+        "ID", "月份", "周期", "客户等级", "投诉时间", "客户代码", "产品型号", "问题来源",
+        "生产部门", "订单数量", "投诉数量", "问题性质", "检验员", "不良SN", "投诉问题描述",
+        "不良图片", "是否计入指标", "严重等级", "问题小类", "原因(简述)", "改善措施",
+        "责任人", "责任线长", "责任主管", "责任部门", "备注", "状态"
+    ));
+
+    int rowIndex = 1;
+    java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    for (CustomerComplaint i : list) {
+      String complaintTimeStr = i.getComplaintTime() != null ? i.getComplaintTime().format(formatter) : "";
+      
+      // 先写入数据行
+      writer.writeRow(java.util.Arrays.asList(
+          i.getId(), i.getMonth(), i.getCycle(), i.getCustomerGrade(), complaintTimeStr,
+          i.getCustomerCode(), i.getProductModel(), i.getProblemSource(), i.getProductionDept(),
+          i.getOrderQty(), i.getComplaintQty(), i.getProblemNature(), i.getInspector(),
+          i.getDefectSn(), i.getComplaintDescription(), "", // 图片列留空给 writeImg
+          i.getIsIncludedInIndicators(), i.getSeverityLevel(), i.getProblemSubtype(),
+          i.getRootCause(), i.getImprovementMeasures(), i.getOwner(), i.getLineLeader(),
+          i.getSupervisor(), i.getResponsibleDept(), i.getRemark(), i.getStatus()
+      ), false);
+
+      // 设置该行高度
+      writer.setRowHeight(rowIndex, 60);
+
+      // 处理图片
+      if (i.getDefectPictures() != null && !i.getDefectPictures().isEmpty()) {
+        String[] pics = i.getDefectPictures().split(",");
+        if (pics.length > 0) {
+          String firstPic = pics[0].trim();
+          String relativePath = firstPic;
+          String[] prefixes = {"/api/files/", "api/files/", "/api/", "api/", "/files/", "files/"};
+          for (String p : prefixes) {
+            if (relativePath.startsWith(p)) {
+              relativePath = relativePath.substring(p.length());
+              break;
+            }
+          }
+          if (relativePath.startsWith("/")) relativePath = relativePath.substring(1);
+          
+          File imgFile = new File(uploadDir, relativePath);
+          if (imgFile.exists() && imgFile.isFile()) {
+            try {
+              // Hutool writeImg: 0-indexed column and row
+              // 我们希望图片居中一点，稍微缩放
+              // 参数: File, leftCol, topRow, rightCol, bottomRow
+              writer.writeImg(imgFile, 15, rowIndex, 15, rowIndex);
+            } catch (Exception ex) {
+              System.err.println("Error writing image " + imgFile.getAbsolutePath() + ": " + ex.getMessage());
+            }
+          } else {
+            System.err.println("Image not found or not a file: " + imgFile.getAbsolutePath());
+          }
+        }
+      }
+      rowIndex++;
     }
-    sb.append("</table>");
-    resp.getWriter().write(sb.toString());
+
+    resp.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8");
+    String filename = URLEncoder.encode("complaints.xlsx", StandardCharsets.UTF_8);
+    resp.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + filename);
+    
+    java.io.OutputStream out = resp.getOutputStream();
+    writer.flush(out);
+    writer.close();
+    out.close();
   }
 }
 

@@ -11,8 +11,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/dicts")
 public class DictController {
-  @GetMapping("/issues/categories")
-  public ApiResponse<List<Map<String, String>>> issueCategories() {
+  @GetMapping("/complaints/categories")
+  public ApiResponse<List<Map<String, String>>> complaintCategories() {
     return ApiResponse.ok(List.of(
         Map.of("code", "PROCESS", "name", "生产"),
         Map.of("code", "DESIGN", "name", "设计"),
@@ -21,8 +21,8 @@ public class DictController {
     ));
   }
 
-  @GetMapping("/issues/modules")
-  public ApiResponse<List<Map<String, String>>> issueModules() {
+  @GetMapping("/complaints/modules")
+  public ApiResponse<List<Map<String, String>>> complaintModules() {
     return ApiResponse.ok(List.of(
         Map.of("code", "MFG", "name", "生产模块"),
         Map.of("code", "DESIGN", "name", "设计模块"),
@@ -31,8 +31,8 @@ public class DictController {
     ));
   }
 
-  @GetMapping("/issues/departments")
-  public ApiResponse<List<Map<String, String>>> issueDepartments() {
+  @GetMapping("/complaints/departments")
+  public ApiResponse<List<Map<String, String>>> complaintDepartments() {
     return ApiResponse.ok(List.of(
         Map.of("code", "MFG", "name", "制造部"),
         Map.of("code", "RND", "name", "研发部"),

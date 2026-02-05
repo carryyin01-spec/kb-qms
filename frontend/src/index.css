@@ -138,6 +138,12 @@
   .modal {
     @apply bg-white rounded-lg shadow-lg w-[850px] max-w-[95vw] border border-gray-300;
   }
+  .modal-fullscreen {
+    @apply w-full h-full max-w-none rounded-none flex flex-col;
+  }
+  .modal-fullscreen .modal-body {
+    @apply flex-1 overflow-y-auto;
+  }
   .modal-header {
     @apply flex items-center justify-between px-6 py-4 border-b border-gray-200;
   }

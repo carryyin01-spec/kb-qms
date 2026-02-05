@@ -2,7 +2,7 @@ import { Routes, Route, Navigate, Link, useNavigate, useLocation } from "react-r
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Documents from "./pages/Documents";
-import Issues from "./pages/Issues";
+import Complaints from "./pages/Complaints";
 import Audits from "./pages/Audits";
 import Notifications from "./pages/Notifications";
 import Users from "./pages/Users";
@@ -51,7 +51,7 @@ export default function App() {
             {!role?.includes("ROLE_QA_INSPECTOR") && (
               <>
                 <Link to="/documents" className={isActive("/documents")}>文档管理</Link>
-                <Link to="/issues" className={isActive("/issues")}>质量问题</Link>
+                <Link to="/complaints" className={isActive("/complaints")}>客诉问题</Link>
                 <Link to="/audits" className={isActive("/audits")}>审核计划</Link>
                 <Link to="/notifications" className={isActive("/notifications")}>通知中心</Link>
               </>
@@ -109,11 +109,11 @@ export default function App() {
           }
         />
         <Route
-          path="/issues"
+          path="/complaints"
           element={
             <PrivateRoute>
               <div className="app-container">
-                <Issues />
+                <Complaints />
               </div>
             </PrivateRoute>
           }

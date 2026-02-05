@@ -7,8 +7,8 @@ DROP TABLE IF EXISTS roles;
 
 CREATE TABLE users (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  username VARCHAR(64) NOT NULL UNIQUE COMMENT '用户名',
-  name VARCHAR(128) COMMENT '姓名',
+  username VARCHAR(64) NOT NULL UNIQUE COMMENT '用户登录名',
+  name VARCHAR(128) COMMENT '用户姓名',
   password VARCHAR(128) NOT NULL COMMENT '密码(明文或BCrypt)',
   email VARCHAR(128) COMMENT '邮箱',
   status INT DEFAULT 1 COMMENT '状态(1启用,0停用)',
@@ -44,41 +44,49 @@ CREATE TABLE documents (
   deleted TINYINT DEFAULT 0 COMMENT '逻辑删除'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='文档表';
  
-DROP TABLE IF EXISTS quality_issues;
-CREATE TABLE quality_issues (
+DROP TABLE IF EXISTS customer_complaints;
+CREATE TABLE customer_complaints (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  title VARCHAR(256) COMMENT '标题',
-  description TEXT COMMENT '描述',
-  severity VARCHAR(16) COMMENT '严重度(LOW/MEDIUM/HIGH)',
-  category VARCHAR(64) COMMENT '类别',
-  module VARCHAR(64) COMMENT '模块',
-  department VARCHAR(64) COMMENT '责任部门',
+  month VARCHAR(16) COMMENT '月份',
+  cycle VARCHAR(32) COMMENT '周期',
+  customer_grade VARCHAR(32) COMMENT '客户等级',
+  complaint_time DATETIME COMMENT '投诉时间',
+  customer_code VARCHAR(192) COMMENT '客户代码',
+  product_model VARCHAR(256) COMMENT '产品型号',
+  problem_source VARCHAR(128) COMMENT '问题来源',
+  production_dept VARCHAR(128) COMMENT '生产部门',
+  order_qty INT COMMENT '订单数量',
+  complaint_qty INT COMMENT '投诉数量',
+  problem_nature VARCHAR(128) COMMENT '问题性质',
+  inspector VARCHAR(64) COMMENT '检验员',
+  defect_sn VARCHAR(256) COMMENT '不良SN',
+  complaint_description TEXT COMMENT '投诉问题描述',
+  defect_pictures TEXT COMMENT '不良图片',
+  is_included_in_indicators VARCHAR(16) COMMENT '是否计入指标',
+  severity_level VARCHAR(32) COMMENT '严重等级',
+  problem_subtype VARCHAR(128) COMMENT '问题小类',
+  root_cause TEXT COMMENT '原因(简述)',
+  improvement_measures TEXT COMMENT '改善措施',
+  owner VARCHAR(64) COMMENT '责任人',
+  line_leader VARCHAR(64) COMMENT '责任线长',
+  supervisor VARCHAR(64) COMMENT '责任主管',
+  responsible_dept VARCHAR(128) COMMENT '责任部门',
+  remark TEXT COMMENT '备注',
   status VARCHAR(32) COMMENT '状态',
-  reporter_id BIGINT COMMENT '报告人ID',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   deleted TINYINT DEFAULT 0 COMMENT '逻辑删除'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='质量问题';
- 
-DROP TABLE IF EXISTS document_versions;
-CREATE TABLE document_versions (
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='客诉问题';
+
+DROP TABLE IF EXISTS complaint_attachments;
+CREATE TABLE complaint_attachments (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  document_id BIGINT NOT NULL COMMENT '文档ID',
-  version_no INT NOT NULL COMMENT '版本号',
-  content TEXT COMMENT '内容',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  deleted TINYINT DEFAULT 0 COMMENT '逻辑删除'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='文档版本';
- 
-DROP TABLE IF EXISTS issue_attachments;
-CREATE TABLE issue_attachments (
-  id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  issue_id BIGINT NOT NULL COMMENT '问题ID',
+  complaint_id BIGINT NOT NULL COMMENT '投诉ID',
   filename VARCHAR(256) COMMENT '原文件名',
   url VARCHAR(512) COMMENT '文件访问URL',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   deleted TINYINT DEFAULT 0 COMMENT '逻辑删除'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='问题附件';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='投诉附件';
  
 DROP TABLE IF EXISTS audit_plans;
 CREATE TABLE audit_plans (
@@ -115,15 +123,25 @@ CREATE TABLE system_logs (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='系统操作日志';
  
-DROP TABLE IF EXISTS issue_followups;
-CREATE TABLE issue_followups (
+DROP TABLE IF EXISTS document_versions;
+CREATE TABLE document_versions (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  issue_id BIGINT NOT NULL COMMENT '问题ID',
+  document_id BIGINT NOT NULL COMMENT '文档ID',
+  version_no INT NOT NULL COMMENT '版本号',
+  content TEXT COMMENT '内容',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  deleted TINYINT DEFAULT 0 COMMENT '逻辑删除'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='文档版本';
+
+DROP TABLE IF EXISTS complaint_followups;
+CREATE TABLE complaint_followups (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  complaint_id BIGINT NOT NULL COMMENT '投诉ID',
   note TEXT COMMENT '备注',
   created_by VARCHAR(64) COMMENT '创建人',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   deleted TINYINT DEFAULT 0 COMMENT '逻辑删除'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='问题跟进记录';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='投诉跟进记录';
  
 DROP TABLE IF EXISTS permissions;
 CREATE TABLE permissions (
