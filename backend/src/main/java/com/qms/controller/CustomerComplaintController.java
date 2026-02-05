@@ -19,7 +19,7 @@ public class CustomerComplaintController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','USER')")
+    @PreAuthorize("hasAuthority('MENU_COMPLAINTS') or hasRole('ADMIN')")
     public ApiResponse<Page<CustomerComplaint>> list(@RequestParam(defaultValue = "1") long page,
                                                      @RequestParam(defaultValue = "10") long size,
                                                      @RequestParam(required = false) String customerCode,
@@ -29,7 +29,7 @@ public class CustomerComplaintController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','USER')")
+    @PreAuthorize("hasAuthority('MENU_COMPLAINTS') or hasRole('ADMIN')")
     public ApiResponse<CustomerComplaint> get(@PathVariable Long id) {
         return ApiResponse.ok(complaintService.get(id));
     }

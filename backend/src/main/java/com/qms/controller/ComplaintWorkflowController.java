@@ -25,7 +25,7 @@ public class ComplaintWorkflowController {
     );
 
     @PostMapping("/transition")
-    @PreAuthorize("hasAuthority('COMPLAINT_WORKFLOW') or hasAnyRole('ADMIN','USER')")
+    @PreAuthorize("hasAuthority('COMPLAINT_WORKFLOW') or hasRole('ADMIN')")
     public ApiResponse<Void> transition(@RequestParam Long id, @RequestParam String targetStatus) {
         CustomerComplaint c = complaintMapper.selectById(id);
         if (c == null) return ApiResponse.fail(404, "not found");

@@ -10,6 +10,7 @@ import com.qms.mapper.RoleMapper;
 import com.qms.mapper.UserRoleMapper;
 import com.qms.entity.Role;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -99,6 +100,7 @@ public class UserController {
 
   @PostMapping("/{id}/roles")
   @PreAuthorize("hasRole('ADMIN')")
+  @Transactional
   public ApiResponse<Void> assignRoles(@PathVariable Long id, @RequestBody RoleAssignRequest req) {
     userRoleMapper.deleteByUserId(id);
     if (req.getRoleIds() != null) {

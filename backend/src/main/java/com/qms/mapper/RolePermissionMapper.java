@@ -1,9 +1,6 @@
 package com.qms.mapper;
 
-import org.apache.ibatis.annotations.Delete;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
@@ -16,9 +13,9 @@ public interface RolePermissionMapper {
   void deleteByRoleId(Long roleId);
 
   @Insert("INSERT INTO role_permissions(role_id, permission_id) VALUES(#{roleId}, #{permissionId})")
-  void insertRolePermission(Long roleId, Long permissionId);
+  void insertRolePermission(@Param("roleId") Long roleId, @Param("permissionId") Long permissionId);
 
   @Delete("DELETE FROM role_permissions WHERE role_id = #{roleId} AND permission_id = #{permissionId}")
-  void deleteRolePermission(Long roleId, Long permissionId);
+  void deleteRolePermission(@Param("roleId") Long roleId, @Param("permissionId") Long permissionId);
 }
 

@@ -3,12 +3,14 @@ package com.qms.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.qms.dto.ApiResponse;
-import com.qms.entity.Role;
+import com.qms.dto.PermissionAssignRequest;
 import com.qms.entity.Permission;
+import com.qms.entity.Role;
 import com.qms.mapper.RoleMapper;
 import com.qms.mapper.PermissionMapper;
 import com.qms.mapper.RolePermissionMapper;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -75,8 +77,9 @@ public class RoleController {
 
   @PostMapping("/{id}/permissions")
   @PreAuthorize("hasRole('ADMIN')")
-  public ApiResponse<Void> assignPermissions(@PathVariable Long id, @RequestBody java.util.Map<String, List<Long>> body) {
-    List<Long> ids = body.get("permissionIds");
+  @Transactional
+  public ApiResponse<Void> assignPermissions(@PathVariable Long id, @RequestBody PermissionAssignRequest req) {
+    List<Long> ids = req.getPermissionIds();
     rolePermissionMapper.deleteByRoleId(id);
     if (ids != null) for (Long pid : ids) rolePermissionMapper.insertRolePermission(id, pid);
     return ApiResponse.ok(null);
@@ -84,6 +87,7 @@ public class RoleController {
 
   @PostMapping("/{id}/apply-template")
   @PreAuthorize("hasRole('ADMIN')")
+  @Transactional
   public ApiResponse<Void> applyTemplate(@PathVariable Long id, @RequestParam String template) {
     java.util.Map<String, java.util.List<String>> tpl = new java.util.HashMap<>();
     tpl.put("reviewer", java.util.List.of("DOC_WORKFLOW","ISSUE_WORKFLOW","DOC_UPDATE","ISSUE_UPDATE","DOC_EXPORT","ISSUE_EXPORT"));

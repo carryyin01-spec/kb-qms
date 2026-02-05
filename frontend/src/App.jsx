@@ -35,6 +35,7 @@ export default function App() {
   const isAdmin = role === "ROLE_ADMIN";
   const hasMenuAdmin = isAdmin || (perms || []).includes("MENU_ADMIN");
   const hasMenuConformance = isAdmin || (perms || []).includes("MENU_CONFORMANCE");
+  const hasMenuComplaints = isAdmin || (perms || []).includes("MENU_COMPLAINTS");
   const isActive = (path) =>
     location.pathname === path ? "bg-white/10 text-white px-3 py-1 rounded" : "text-white/90 hover:text-white";
   const logout = () => {
@@ -51,7 +52,7 @@ export default function App() {
             {!role?.includes("ROLE_QA_INSPECTOR") && (
               <>
                 <Link to="/documents" className={isActive("/documents")}>文档管理</Link>
-                <Link to="/complaints" className={isActive("/complaints")}>客诉问题</Link>
+                {hasMenuComplaints && <Link to="/complaints" className={isActive("/complaints")}>客诉问题</Link>}
                 <Link to="/audits" className={isActive("/audits")}>审核计划</Link>
                 <Link to="/notifications" className={isActive("/notifications")}>通知中心</Link>
               </>
@@ -62,25 +63,27 @@ export default function App() {
             {hasMenuAdmin && <Link to="/users" className={isActive("/users")}>用户管理</Link>}
             {hasMenuAdmin && <Link to="/roles" className={isActive("/roles")}>角色管理</Link>}
             {hasMenuAdmin && <Link to="/permissions" className={isActive("/permissions")}>权限管理</Link>}
-            {hasMenuAdmin && <Link to="/system-logs" className={isActive("/system-logs")}>系统日志</Link>}
+            {isAdmin && <Link to="/system-logs" className={isActive("/system-logs")}>系统日志</Link>}
             {hasMenuAdmin && <Link to="/workflow" className={isActive("/workflow")}>工作流管理</Link>}
             {hasMenuAdmin && <Link to="/integration" className={isActive("/integration")}>系统集成</Link>}
             <div className="flex-1" />
-            <div className="flex items-center gap-2 mr-4 bg-white/10 px-2 py-1 rounded">
-              <span className="text-white text-xs">操作日志</span>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  className="sr-only peer"
-                  checked={localStorage.getItem("enable_operation_log") === "true"}
-                  onChange={(e) => {
-                    localStorage.setItem("enable_operation_log", e.target.checked ? "true" : "false");
-                    window.location.reload(); // 刷新以使开关生效
-                  }}
-                />
-                <div className="w-9 h-5 bg-white/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
-              </label>
-            </div>
+            {isAdmin && (
+              <div className="flex items-center gap-2 mr-4 bg-white/10 px-2 py-1 rounded">
+                <span className="text-white text-xs">操作日志</span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    className="sr-only peer"
+                    checked={localStorage.getItem("enable_operation_log") === "true"}
+                    onChange={(e) => {
+                      localStorage.setItem("enable_operation_log", e.target.checked ? "true" : "false");
+                      window.location.reload(); // 刷新以使开关生效
+                    }}
+                  />
+                  <div className="w-9 h-5 bg-white/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
+                </label>
+              </div>
+            )}
             {user && <span className="text-white/90 mr-2">已登录：{user}</span>}
             <button className="btn-outline bg-white/10 text-white border-white/30 hover:bg-white/20" onClick={logout}>退出登录</button>
           </div>
