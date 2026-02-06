@@ -170,6 +170,8 @@ export default function ConformanceEntry() {
   const validateSn = async (sn) => {
     if (!sn || !sn.trim()) return { valid: false, reason: 'empty' };
     if (/[\u4e00-\u9fff]/.test(sn)) return { valid: false, reason: 'chinese' };
+    if (/[\u0e00-\u0e7f]/.test(sn)) return { valid: false, reason: 'thai' };
+    if (/[\u1000-\u109f]/.test(sn)) return { valid: false, reason: 'burmese' };
     const ex = await lineExists(Number(id), sn.trim());
     if (ex.code === 200 && ex.data) return { valid: false, reason: 'duplicate' };
     return { valid: true, reason: null };
@@ -247,6 +249,16 @@ export default function ConformanceEntry() {
           "No Chinese characters allowed\n" +
           "ห้ามป้อนอักษรจีน\n" +
           "တရုတ်စာလုံးများ မထည့်ရပါ";
+      } else if (validation.reason === 'thai') {
+        message = "禁止输入泰文\n" +
+          "No Thai characters allowed\n" +
+          "ห้ามป้อนตัวอักษรไทย\n" +
+          "ထိုင်းစာလုံးများ မထည့်ရပါ";
+      } else if (validation.reason === 'burmese') {
+        message = "禁止输入缅甸语\n" +
+          "No Burmese characters allowed\n" +
+          "ห้ามป้อนภาษาพม่า\n" +
+          "မြန်မာစာလုံးများ မထည့်ရပါ";
       } else if (validation.reason === 'duplicate') {
         message = "条码重复，请确认\n" +
           "Duplicate barcode, please confirm\n" +
@@ -306,6 +318,16 @@ export default function ConformanceEntry() {
           "No Chinese characters allowed\n" +
           "ห้ามป้อนอักษรจีน\n" +
           "တရုတ်စာလုံးများ မထည့ฺရပห";
+      } else if (validation.reason === 'thai') {
+        message = "禁止输入泰文\n" +
+          "No Thai characters allowed\n" +
+          "ห้ามป้อนตัวอักษรไทย\n" +
+          "ထိုင်းစာလုံးများ မထည့်ရပါ";
+      } else if (validation.reason === 'burmese') {
+        message = "禁止输入缅甸语\n" +
+          "No Burmese characters allowed\n" +
+          "ห้ามป้อนภาษาพม่า\n" +
+          "မြန်မာစာလုံးများ မထည့်ရပါ";
       } else if (validation.reason === 'duplicate') {
         message = "条码重复，请确认\n" +
           "Duplicate barcode, please confirm\n" +
@@ -330,6 +352,16 @@ export default function ConformanceEntry() {
           "No Chinese characters allowed\n" +
           "ห้ามป้อนอักษรจีน\n" +
           "တရုတ်စာလုံးများ မထည့်ရပါ";
+      } else if (validation.reason === 'thai') {
+        message = "禁止输入泰文\n" +
+          "No Thai characters allowed\n" +
+          "ห้ามป้อนตัวอักษรไทย\n" +
+          "ထိုင်းစာလုံးများ mထည့့ရပါ";
+      } else if (validation.reason === 'burmese') {
+        message = "禁止输入缅甸语\n" +
+          "No Burmese characters allowed\n" +
+          "ห้ามป้อนภาษาพม่า\n" +
+          "မြန်မာစာလုံးများ မထည့်ရပါ";
       } else if (validation.reason === 'duplicate') {
         message = "条码重复，请确认\n" +
           "Duplicate barcode, please confirm\n" +
