@@ -79,7 +79,7 @@ public class ConformanceService {
     if (qaInspector != null && !qaInspector.isEmpty()) {
       w.like(ConformanceLine::getQaInspector, qaInspector);
     }
-    w.orderByAsc(ConformanceLine::getSeqNo);
+    w.orderByDesc(ConformanceLine::getId);
     return lineMapper.selectPage(Page.of(page, size), w);
   }
 
