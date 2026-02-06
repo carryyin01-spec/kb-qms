@@ -865,7 +865,7 @@ export default function Conformance() {
                   }}
                 />
               </th>
-              <th className="whitespace-nowrap">ID</th>
+              <th className="whitespace-nowrap">序号</th>
               <th className="whitespace-nowrap">订单号</th>
               <th className="whitespace-nowrap">客户编码</th>
               <th className="whitespace-nowrap">产品编号</th>
@@ -877,7 +877,7 @@ export default function Conformance() {
             </tr>
           </thead>
           <tbody>
-            {headers.map((h) => (
+            {headers.map((h, index) => (
               <tr key={h.id} className={selectedIds.includes(h.id) ? "bg-blue-50" : ""}>
                 <td>
                   <input
@@ -892,7 +892,7 @@ export default function Conformance() {
                     }}
                   />
                 </td>
-                <td className="whitespace-nowrap">{h.id}</td>
+                <td className="whitespace-nowrap">{(page - 1) * pageSize + index + 1}</td>
                 <td className="whitespace-nowrap">{h.orderNo}</td>
                 <td className="whitespace-nowrap">{h.customerCode}</td>
                 <td className="whitespace-nowrap">{h.productNo}</td>

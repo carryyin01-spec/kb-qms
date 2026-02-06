@@ -306,7 +306,7 @@ export default function Complaints() {
       target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
     }
     const weekNum = 1 + Math.ceil((firstThursday - target) / 604800000);
-    const cycle = `wk${weekNum.toString().padStart(2, '0')}`;
+    const cycle = `wk${weekNum}`;
 
     setForm({ ...form, complaintTime: val, month, cycle });
   };
@@ -466,7 +466,7 @@ export default function Complaints() {
                 <td>{i.createdBy}</td>
                 <td>{i.createdAt ? i.createdAt.replace("T", " ").split(".")[0] : ""}</td>
                 <td>{i.month}</td>
-                <td>{i.cycle}</td>
+                <td>{i.cycle?.replace(/^wk0/, 'wk')}</td>
                 <td>{i.customerGrade}</td>
                 <td>{i.complaintTime ? i.complaintTime.replace("T", " ").split(".")[0] + (i.complaintTime.length <= 16 ? ":00" : "") : ""}</td>
                 <td>{i.customerCode}</td>
@@ -862,7 +862,8 @@ function ComplaintExport() {
         for (const i of allRecords) {
           const rowData = {
             ...i,
-            complaintTime: i.complaintTime ? i.complaintTime.replace("T", " ").split(".")[0] + (i.complaintTime.length <= 16 ? ":00" : "") : ""
+            complaintTime: i.complaintTime ? i.complaintTime.replace("T", " ").split(".")[0] + (i.complaintTime.length <= 16 ? ":00" : "") : "",
+            cycle: i.cycle?.replace(/^wk0/, 'wk')
           };
           const row = worksheet.addRow(rowData);
           row.height = 60; // 设置默认行高
