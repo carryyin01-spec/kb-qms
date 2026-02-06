@@ -39,7 +39,7 @@ export default function Login() {
       
       <form onSubmit={submit} className="relative z-10 bg-white/95 backdrop-blur-md p-10 rounded-2xl shadow-2xl w-[400px] space-y-6">
         <div className="text-center space-y-2 mb-8">
-          <h1 className="text-3xl font-bold text-blue-700 tracking-tight">QMS 质量管理系统</h1>
+          <h1 className="text-3xl font-bold text-blue-700 tracking-tight">KB-QMS 质量管理系统</h1>
           <div className="h-1 w-20 bg-blue-500 mx-auto rounded-full"></div>
         </div>
         
@@ -76,7 +76,7 @@ export default function Login() {
         </button>
         
         <div className="text-center text-gray-400 text-xs mt-8">
-          © 2026 QMS Quality Management System
+          © 2026 KB-QMS Quality Management System
         </div>
       </form>
     </div>

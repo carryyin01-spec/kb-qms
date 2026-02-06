@@ -47,7 +47,7 @@ export default function App() {
       {token && (
         <div className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 mb-4">
           <div className="app-container py-3 flex items-center gap-4">
-            <div className="text-white font-semibold text-lg mr-2">QMS</div>
+            <div className="text-white font-semibold text-lg mr-2">KB-QMS</div>
             {!role?.includes("ROLE_QA_INSPECTOR") && <Link to="/" className={isActive("/")}>仪表盘</Link>}
             {!role?.includes("ROLE_QA_INSPECTOR") && (
               <>
